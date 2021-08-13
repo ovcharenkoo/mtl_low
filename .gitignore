@@ -1,3 +1,6 @@
+env
+log.txt
+tfile*
 __pycache__
 .ipynb_*
 *.pyc

@@ -138,23 +138,24 @@ def split_tr_te(f, frac):
 
 
 class TriLoader(torch.utils.data.Dataset):
-    def __init__(self, c1, c2, c3, c4, par=None):
-        self.c1, self.c2, self.c3, self.c4 = c1, c2, c3, c4
+    """Combine data cubes [nsamp, noffsets, ntimes] into the data loader"""
+    def __init__(self, cube1, cube2, cube3, cube4, par=None):
+        self.cube1, self.cube2, self.cube3, self.cube4 = cube1, cube2, cube3, cube4
         self.par = par
-        print(c1.shape, c2.shape, c3.shape, c4.shape)
+        print(cube1.shape, cube2.shape, cube3.shape, cube4.shape)
     
     def __len__(self):
-        return self.c1.shape[0]
+        return self.cube1.shape[0]
     
     def __getitem__(self, item):
         def p(v, i):
             out = v[i:i+1, ...].astype(np.float32)
             return out
         
-        return (p(self.c1, item),
-                p(self.c2, item),
-                p(self.c3, item),
-                p(self.c4, item))
+        return (p(self.cube1, item),
+                p(self.cube2, item),
+                p(self.cube3, item),
+                p(self.cube4, item))
 
     
 def get_median_max(x):
@@ -321,7 +322,10 @@ def get_cubes_from_loader(loader, model_cube):
 
 
 def init_loaders(root_src, root_dst, par=None, frac=0.1, limit=None):
-    """Main function that makes training dataset from shot gathers and a set of generated subsurface models"""
+    """Main function that makes training dataset from shot gathers and a set of generated subsurface models.
+    
+    When run for the first time it reads multiple files from the data directory, splits these data into high, low and ultra-low frequency bands and stores them in .npy cubes. The motivation is to accelerate training since such a pre-processing is static and there is no need to do it on the fly. However, this significantly increases RAM consumption.
+    """
     par = par if par is not None else par_default
     
     if not os.path.exists(os.path.join(root_src, 'cube_src_tr_h.npy')):

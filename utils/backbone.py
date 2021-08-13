@@ -1,3 +1,5 @@
+"""Modified from https://github.com/shepnerd/inpainting_gmcnn/tree/master/pytorch/model"""
+
 import os
 import torch
 import torch.nn as nn

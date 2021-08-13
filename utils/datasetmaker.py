@@ -1,3 +1,4 @@
+"""Pre-processed the raw data from forward modeling by peeling off the level of directories, band-pass filtering etc."""
 
 from collections import namedtuple
 import os
@@ -9,7 +10,10 @@ import natsort
 import multiprocessing
 import numpy as np
 
-import m8r
+# try:
+#     import m8r
+# except ImportError:
+#     print(f'Madagascar not found (called from {__name__})! It is OK unless you want to generate data from scratch. Install m8r from ahay.org')
 
 num_cores = multiprocessing.cpu_count()
 
@@ -22,25 +26,25 @@ def run_process(p):
     os.system(p)
     
     
-def from_rsf(file, return_dict=False):
-    rsf = sf.Input(file)
-    ndim = len(rsf.shape())
-    if return_dict:
-        d = dict()
-        for i in range(ndim):
-            for j in ['n', 'd', 'o']:
-                key = f'{j}{i+1}'
-                val = rsf.float(key)
-                print(f"\tdict['{key}'] <-- {key} <-- {val}")
-                d[key] = val
-    else:
-        d = [rsf.float(f"d{i+1}") for i in range(ndim)]
-    n = [rsf.int(f"n{i+1}") for i in range(ndim)]
-    a = np.zeros(n[::-1], dtype=np.float32)
-    rsf.read(a)
-    # a = from_binary(file, dtype=np.float32)[-np.prod(n):].reshape(n).transpose()
-    data = np.swapaxes(a, 0, -1)
-    return data, d
+# def from_rsf(file, return_dict=False):
+#     rsf = sf.Input(file)
+#     ndim = len(rsf.shape())
+#     if return_dict:
+#         d = dict()
+#         for i in range(ndim):
+#             for j in ['n', 'd', 'o']:
+#                 key = f'{j}{i+1}'
+#                 val = rsf.float(key)
+#                 print(f"\tdict['{key}'] <-- {key} <-- {val}")
+#                 d[key] = val
+#     else:
+#         d = [rsf.float(f"d{i+1}") for i in range(ndim)]
+#     n = [rsf.int(f"n{i+1}") for i in range(ndim)]
+#     a = np.zeros(n[::-1], dtype=np.float32)
+#     rsf.read(a)
+#     # a = from_binary(file, dtype=np.float32)[-np.prod(n):].reshape(n).transpose()
+#     data = np.swapaxes(a, 0, -1)
+#     return data, d
     
     
 def print_fn_signature(_what, _from, _to):

@@ -1,18 +1,20 @@
+"""A collection of misc functions for data loading and processing """
+
 import os
 import glob
 import numpy as np
 import torch
 import scipy
 import scipy.signal
-from scipy import fftpack, signal
+from scipy import fftpack
+
 import segyio
 from natsort import natsorted
 
 try:
     import m8r as sf
-except:
-    print('Madagascar not found! Install m8r from ahay.org')
-
+except ImportError:
+    print(f'Madagascar not found (called from {__name__})! It is OK unless you want to generate data from scratch. Install m8r from ahay.org')
 
 def is_empty(p): return False if (os.path.exists(p) and [f for f in os.listdir(p) if f != '.gitignore']) else True
 
@@ -22,7 +24,6 @@ def divmax(x): return x / np.max(np.abs(x))
 
 def zero_below_freq(dat, fhi, dt, disable=False, reverse=False):
     """ Input zeros into frequency spectrum of data below or above specified frequency.
-        by Oleg Ovcharenko, KAUST, 2021
         
     Args:
         dat(np.ndarray): 2D array [noffsets, ntimes]
@@ -46,16 +47,18 @@ def zero_below_freq(dat, fhi, dt, disable=False, reverse=False):
     return out
 
 
-def convolve(star, psf):
-    star_fft = fftpack.fftshift(fftpack.fftn(star))
-    psf_fft = fftpack.fftshift(fftpack.fftn(psf))
-    return fftpack.fftshift(fftpack.ifftn(fftpack.ifftshift(star_fft*psf_fft)))
+def convolve(data, kernel):
+    """Convolve data with the kernel in frequency domain"""
+    data_fft = fftpack.fftshift(fftpack.fftn(data))
+    kernel_fft = fftpack.fftshift(fftpack.fftn(kernel))
+    return fftpack.fftshift(fftpack.ifftn(fftpack.ifftshift(data_fft*kernel_fft)))
 
 
 def deconvolve(star, psf, ax=-1):
-    star_fft = fftpack.fftshift(fftpack.fftn(star, axes=ax), axes=ax)
-    psf_fft = fftpack.fftshift(fftpack.fftn(psf, axes=ax), axes=ax)
-    return np.real(fftpack.ifftn(fftpack.ifftshift(star_fft/psf_fft, axes=ax), axes=ax))
+    """Deconvolve data with the kernel in frequency domain"""
+    data_fft = fftpack.fftshift(fftpack.fftn(data, axes=ax), axes=ax)
+    kernel_fft = fftpack.fftshift(fftpack.fftn(kernel, axes=ax), axes=ax)
+    return np.real(fftpack.ifftn(fftpack.ifftshift(data_fft/kernel_fft, axes=ax), axes=ax))
 
 
 def load_su(fname):
@@ -64,12 +67,10 @@ def load_su(fname):
         d = np.array([np.copy(tr) for tr in f.trace])
         print(f'< {fname} > np.array({d.shape})')
         return d
-    
-def write_su(fname):
-    """ Write a np.ndarray in to a .su file """
-    pass
+
 
 def from_rsf(file, verbose=False):
+    """Read data from Madagascar .rsf file (header and binary separate)"""
     rsf = sf.Input(file)
     ndim = len(rsf.shape())
     if verbose: print(f'Load {file}\n\tdim: {ndim}')
@@ -89,24 +90,33 @@ def from_rsf(file, verbose=False):
     return data, d
 
 
-def load_bin(p, dims): 
-    f = open(p); vp = np.fromfile (f, dtype=np.dtype('float32').newbyteorder ('<')); f.close();
-    vp = vp.reshape(*dims); vp = np.transpose(vp); vp = np.flipud(vp); print(f"{vp.shape}"); return vp
+def load_bin(filename, dims): 
+    """Read binary from file"""
+    with open(filename) as f:
+        vp = np.fromfile(f, dtype=np.dtype('float32').newbyteorder ('<')); 
+    vp = vp.reshape(*dims)
+    vp = np.transpose(vp) 
+    vp = np.flipud(vp)
+    print(f"{vp.shape}") 
+    return vp
 
 
-def write_bin(d, f):
-    print(f'Save {d.shape} as binary to {f}')
-    with open(f, "wb") as file:
-        binary_format = bytearray(d)
+def write_bin(data, filename):
+    """Write binary to file"""
+    print(f'Save {data.shape} as binary to {filename}')
+    with open(filename, "wb") as file:
+        binary_format = bytearray(data)
         file.write(binary_format)
 
 
 def load_hh(f, verbose=False):
+    """Read data from Madagascar .hh file (header and binary in the same file)"""
     data, opts = from_rsf(f, verbose)
     return data.swapaxes(-1, -2), opts
 
 
 def write_hh(data, opts, filename=None, verbose=False):
+    """Write data into Madagascar .hh file (header and binary in the same file)"""
     if verbose: print(f'Save {filename}')
     data = data.astype(np.float32); yy = sf.Output(filename); yy.filename = '/dev/null'; yy.pipe = True
     for k, v in opts.items(): 
@@ -116,6 +126,7 @@ def write_hh(data, opts, filename=None, verbose=False):
     
 
 def parse_files(root, pattern, verbose=1):
+    """Get list of files in folder matching pattern"""
     files = natsorted(glob.glob(os.path.join(root, pattern)))
     if verbose:
         if len(files) > 0:
@@ -126,6 +137,7 @@ def parse_files(root, pattern, verbose=1):
 
 
 def prep(dat, par):
+    """Crop, sparsify and normalize data by its absmax"""
     nx, nt = par['crop']
     sx, st = par['skip']
     dat = dat[:nx:sx, :nt:st]
@@ -136,6 +148,7 @@ def prep(dat, par):
 
 
 class CubeLoader(torch.utils.data.Dataset):
+    """Create loader from [nsamp, noffsets, ntimes]"""
     def __init__(self, dat, par):
         self.dat = dat
         self.par = par
@@ -150,6 +163,7 @@ class CubeLoader(torch.utils.data.Dataset):
 
 
 class Loader(torch.utils.data.Dataset):
+    """"Create loader from a list of filenames"""
     def __init__(self, f_inp, par):
         self.f_inp = f_inp
         self.par = par
@@ -165,7 +179,7 @@ class Loader(torch.utils.data.Dataset):
 
 
 class RawLoader(torch.utils.data.Dataset):
-    """Reads raw .hh data into (h, w) np.array and returns it without any pre-processing"""
+    """ Reads raw .hh data into (h, w) np.array and returns it without any pre-processing"""
     def __init__(self, f_inp):
         self.f_inp = f_inp
 
@@ -179,7 +193,7 @@ class RawLoader(torch.utils.data.Dataset):
 
 
 class LimitLoader(torch.utils.data.Dataset):
-    """Given loader with self.f_inp leaves only first n items"""
+    """Given a loader with self.f_inp leaves only first n items"""
     def __init__(self, l1, n):
         self.f_inp = l1.f_inp[:n]
         self.main_loader = RawLoader(self.f_inp)
@@ -192,6 +206,7 @@ class LimitLoader(torch.utils.data.Dataset):
     
 
 class CatLoader(torch.utils.data.Dataset):
+    """Concatenate two loaders by merging respective lists of filenames"""
     def __init__(self, l1, l2):
         super().__init__()
         self.f_inp = self.l1.f_inp + self.l2.f_inp
@@ -205,6 +220,7 @@ class CatLoader(torch.utils.data.Dataset):
     
 
 class JointLoader(torch.utils.data.Dataset):
+    """Concatenate outputs of two loaders into single tuple of outputs"""
     def __init__(self, l1, l2):
         super().__init__()
         self.l1 = l1
@@ -221,17 +237,9 @@ class JointLoader(torch.utils.data.Dataset):
         o2 = self.l2.__getitem__(item2)
         return (*o1, *o2)
         
-        
-        
-#============================================================================   
-# 
-#============================================================================   
-        
-        
-        
-import scipy.signal
 
 def const_bandpass_below_freq(dat_tx, fhi, dt, disable=False, reverse=False):
+    """Hard-code zero below fhi"""
     h, w = dat_tx.shape[-2:]
     dat_fx = np.fft.rfft(dat_tx, w)
     ff = np.fft.rfftfreq(dat_tx.shape[-1], d=dt)
@@ -249,7 +257,7 @@ def const_bandpass_below_freq(dat_tx, fhi, dt, disable=False, reverse=False):
     return out
 
 def butter_bandpass(flo=None, fhi=None, fs=None, order=8, btype='band'):
-#def butter_bandpass(flo=None, fhi=None, fs=None, order=5, btype='band'):
+    """A component of `bandpass` function"""
     nyq = 0.5 * fs
     if btype == 'band':
         low = flo / nyq
@@ -296,7 +304,7 @@ def bandpass(data, flo=None, fhi=None, dt=None, fs=None, order=4, btype='band', 
     
     if upscale:
         no, nt = data.shape
-        data = signal.resample(data, nt * upscale, axis=-1)
+        data = scipy.signal.resample(data, nt * upscale, axis=-1)
         fs = fs * upscale
         
     if pad:
@@ -372,7 +380,7 @@ def bandpass2(data,
 
 
 class BandpassLoader(torch.utils.data.Dataset):
-    """Case-specific loader. Bandpasses data according to rules and returns all of them as a tuple"""
+    """This loader is tailored for a specific experiment. Bandpasses data according to rules and returns all of them as a tuple"""
     def __init__(self, l1, par, unroll=True, peel=False):
         self.l1 = l1
         self.par = par
@@ -435,14 +443,19 @@ def mutter(d, k, b, r=0, flip=False):
     return dat * mask
 
     
-def make_noise_cube(p):
-    print(f'Load {p}')
-    c = np.load(p)
-    mask = mutter(np.ones(c.shape[-2:]), 3/4, 0)
+def make_noise_cube(filename, k=3/4, b=0):
+    """Read a cube of data [nsamp, noffsets, ntimes] from filename, then
+    mute the data part and tile the noise triangle into another `cube of noise`
+    k - slope for mutter
+    b - intercept for mutter
+    """
+    print(f'Load {filename}')
+    c = np.load(filename)
+    mask = mutter(np.ones(c.shape[-2:]), k, b)
     c = c * np.expand_dims(1 - mask, 0)
     print(c.shape)
 
-    c = c[: ,:, :int(mask.shape[0] * 3/4)]
+    c = c[: ,:, :int(mask.shape[0] * k)]
     c = np.flip(c[:, ::-1, :], -1) + c
     c = c[...,10:-10]
     c = np.concatenate([c, c], -1)
@@ -451,6 +464,7 @@ def make_noise_cube(p):
 
 
 class NoiseAdder(torch.utils.data.Dataset):
+    """Adds noise to high-frequency data of the input loader"""
     def __init__(self, l1, cube_hf):
         super().__init__()
         self.l1 = l1
@@ -488,6 +502,7 @@ class NoiseAdder(torch.utils.data.Dataset):
     
     
 class FlipLoader(torch.utils.data.Dataset):
+    """Augmentation by flipping each data sample from another loader along offset axis"""
     def __init__(self, l1, p=0.5):
         super().__init__()
         self.l1 = l1

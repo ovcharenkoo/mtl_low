@@ -1,9 +1,12 @@
+"""Components for generation of random subsurface models"""
+
 import numpy as np
 from scipy.ndimage.filters import gaussian_filter
 from scipy.ndimage.interpolation import map_coordinates
 
 
 class GeologyScaler(object):
+    """Forward and backward scaling of the data between real and reference ranges"""
     def __init__(self, img, lim=[0, 1]):
         if len(img.shape) == 3:
             # print('Apply GeologyScaler to 3 channel data')
@@ -26,6 +29,7 @@ class GeologyScaler(object):
 
 
 def get_reflectivity(h, k=0.85):
+    """Make a sparse vector of pseudo-reflectivities"""
     r = -1 + 2 * np.random.random(h)
     mask = np.random.random(h)
     mask[mask < k] = 0
@@ -33,6 +37,8 @@ def get_reflectivity(h, k=0.85):
 
 
 def ref2vel(r, v0):
+    """Convert the 1D pseudo-reflectivity into pseudo-velocity. Pseudo implies that these velocities might not have geological meaning. We later subtract the background trend to get velocity perturbations.
+    """
     # Assuming rho=1, then R = (v2 - v1) / (v2 + v1)
     vel = np.zeros(len(r) + 1)
     vel[0] = v0
@@ -46,11 +52,8 @@ def get_trend(h, v0, v1):
     return v0 + idx * (v1 - v0) / h
 
 
-def get_2d_layered_model(h, w, vmin_trend=1, vmax_trend=1, dv0=1, vmin=0., vmax=1.):#, alpha_x, alpha_z, beta_x, beta_z):
-    """
-    Args:
-        more_layers (float): 0..1, makes layers finer
-    """
+def get_2d_layered_model(h, w, vmin_trend=1, vmax_trend=1, dv0=1, vmin=0., vmax=1.):
+    """ Make 1D velocity model (along depth axis) and replicate it along offset axis"""
     r = get_reflectivity(h)
     vel = ref2vel(r, dv0)
     trend = get_trend(h, vmin_trend, vmax_trend)
@@ -62,6 +65,7 @@ def get_2d_layered_model(h, w, vmin_trend=1, vmax_trend=1, dv0=1, vmin=0., vmax=
 
 
 def to_3D(img):
+    """From single channel to 3 channels"""
     if len(img.shape) < 3:
         img = np.expand_dims(img, -1)
         return np.concatenate((img, img, img), axis=2)

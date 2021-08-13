@@ -8,31 +8,34 @@ Note that examples below include **experiments on synthetic data only** since po
 
 ![workflow](./assets/arch.png)
 
-----
 ## How to start
-Download the data and run notebooks. All notebooks are set for inference / view by default. Meaning that these will not run any heavy calculations unless reset otherwise. Instead, these will use the pre-trained weights and data to partially reproduce results from the paper.
+Download the data and run notebooks. All notebooks are set for inference / view by default. Meaning that these will not run any heavy calculations unless reset otherwise. Instead, these will use the pre-trained weights and data to partially reproduce results from the paper. The positive value in `Extra` column indicates that you need to compile or install the third-party software to properly run these notebooks.
 
 
-| Filename | Description |
-| -------- | ---- |
-| ex0_create_training_dataset.ipynb | Generate training dataset of synthetic waveforms | 
-| ex1_unet_l.ipynb | Train UNet to predict low-frequency data | 
-| ex2_multi_l.ipynb | Train Multi-column network to predict low-frequency data |
-| ex3_multi_lm.ipynb  | Train Multi-column network to predict low-frequency data and local subsurface model|
-| ex4_multi_lc.ipynb | Train Multi-column network to predict low-frequency data using extra trace-wise correlation loss term | 
-| ex5_multi_lcm.ipynb | Train Multi-column network to predict low-frequency data and local subsurface model. Also use the trace-wise correlation loss to fit the data |
-| ex6_fwi_marmousi_with_predicted.ipynb | Run / view full-waveform inversion from predicted low-frequency data and initial subsurface model| 
-| ex7_fwi_marmousi_without_predicted.ipynb  | Run / view full-waveform inversion from bandlimited data and poor initial model |
-| ex8_make_pictures.ipynb | Compare all trained networks and make key figures | 
-| shared_data_loading.ipynb | This notebook is called by ex1-5|
-| assets | Folder with images for README| 
-| pretrained_files | Download and place pre-trained data here | 
-| utils | Code components | 
+| Filename | Extra | Description |
+| -------- | ----- | ---- |
+| ex0_create_training_dataset.ipynb | Yes | Generate training dataset of synthetic waveforms | 
+| ex1_unet_l.ipynb | | Train UNet to predict low-frequency data | 
+| ex2_multi_l.ipynb | | Train Multi-column network to predict low-frequency data |
+| ex3_multi_lm.ipynb |  | Train Multi-column network to predict low-frequency data and local subsurface model|
+| ex4_multi_lc.ipynb | | Train Multi-column network to predict low-frequency data using extra trace-wise correlation loss term | 
+| ex5_multi_lcm.ipynb | | Train Multi-column network to predict low-frequency data and local subsurface model. Also use the trace-wise correlation loss to fit the data |
+| ex6_fwi_marmousi_with_predicted.ipynb | Yes | Run / view full-waveform inversion from predicted low-frequency data and initial subsurface model| 
+| ex7_fwi_marmousi_without_predicted.ipynb | Yes | Run / view full-waveform inversion from bandlimited data and poor initial model |
+| ex8_make_pictures.ipynb | | Compare all trained networks and make key figures | 
+| shared_data_loading.ipynb | | This notebook is called by ex1-5|
+| assets | | Folder with images for README| 
+| pretrained_files | | Download and place pre-trained data here | 
+| utils |  | Code components | 
 
-### Dependencies
-For general list of dependencies check `requirements.txt`.
+### Prerequsites and dependencies
+* Python 3.8
+* PyTorch 1.8
+* CUDA 11.0
 
-To run actual FWI and data generation on your machine (ex 0, 7 and 8) you would need to download compile [DENISE-Black-Edition](https://github.com/daniel-koehn/DENISE-Black-Edition). Then change relevant paths in aforementioned notebooks.
+For the rest of Python dependencies check `requirements.txt`.
+
+To run FWI and data generation notebooks on your machine (ex 0, 6 and 7) you would need to download and compile [DENISE-Black-Edition](https://github.com/daniel-koehn/DENISE-Black-Edition). Then change relevant paths in aforementioned notebooks. Moreover, for generation of the training dataset from scratch, you would need to install [Madagascar](https://github.com/ahay/src).
 
 ### Installation
 ```
@@ -51,8 +54,8 @@ Unzip files by running `tar -xvf arhive.tar.gz` and place complete folders accor
 | Link | Size | Destination | Description
 | ---- | -----| ------------| ----------- |
 | [data.tar.gz](https://www.dropbox.com/s/58zckalcm6wlp06/data.tar.gz?dl=1) | ~ 13 Gb | `./pretrained_files/data/*` | training and validation datasets
-| [trained_nets.tar.gz](https://www.dropbox.com/s/jpnb18j62jqrs22/fwi_outputs.tar.gz?dl=1) | ~ 300 Mb| `./pretrained_files/trained_nets/*` | Pre-trained network weights
-| [fwi_outputs.tar.gz]() | ~ 10 Mb | `./pretrained_files/fwi_outputs/*` | Inverted subsurface models etc.
+| [trained_nets.tar.gz](https://www.dropbox.com/s/a8wvncp86iiob0d/trained_nets.tar.gz?dl=1) | ~ 300 Mb| `./pretrained_files/trained_nets/*` | Pre-trained network weights
+| [fwi_outputs.tar.gz](https://www.dropbox.com/s/jpnb18j62jqrs22/fwi_outputs.tar.gz?dl=1) | ~ 10 Mb | `./pretrained_files/fwi_outputs/*` | Inverted subsurface models etc.
 
 ## Acknowledgments
 Our implementation is heavily influenced and uses code blocks from [Inpainting GMCNN](https://github.com/shepnerd/inpainting_gmcnn).
