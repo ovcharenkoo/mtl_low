@@ -1,3 +1,4 @@
+
 # Multi-task learning for low-frequency extrapolation and elastic model building from seismic data
 
 
@@ -9,10 +10,10 @@ Note that examples below include **experiments on synthetic data only** since po
 ![workflow](./assets/arch.png)
 
 ## How to start
-Download the data and run notebooks. All notebooks are set for inference / view by default. Meaning that these will not run any heavy calculations unless reset otherwise. Instead, these will use the pre-trained weights and data to partially reproduce results from the paper. The positive value in `Extra` column indicates that you need to compile or install the third-party software to properly run these notebooks.
+Download the data and run notebooks. All notebooks are set for inference / view by default. Meaning that these will not run any heavy calculations unless reset otherwise. Instead, these will use the pre-trained weights and data to partially reproduce results from the paper. The `Need extra` column indicates whether you need to compile or install third-party software to properly run these notebooks (check dependencies section for details).
 
 
-| Filename | Extra | Description |
+| Filename | Need extra | Description |
 | -------- | ----- | ---- |
 | ex0_create_training_dataset.ipynb | Yes | Generate training dataset of synthetic waveforms | 
 | ex1_unet_l.ipynb | | Train UNet to predict low-frequency data | 
@@ -35,7 +36,7 @@ Download the data and run notebooks. All notebooks are set for inference / view 
 
 For the rest of Python dependencies check `requirements.txt`.
 
-To run FWI and data generation notebooks on your machine (ex 0, 6 and 7) you would need to download and compile [DENISE-Black-Edition](https://github.com/daniel-koehn/DENISE-Black-Edition). Then change relevant paths in aforementioned notebooks. Moreover, for generation of the training dataset from scratch, you would need to install [Madagascar](https://github.com/ahay/src).
+To run FWI and data generation notebooks on your machine (examples 0, 6 and 7) you would need to download and compile [DENISE-Black-Edition](https://github.com/daniel-koehn/DENISE-Black-Edition) software for numerical wave propagation, followed by changing relevant paths in aforementioned notebooks. Moreover, for generation of the training dataset from scratch, you would need to install [Madagascar](https://github.com/ahay/src) software for seismic data processing.
 
 ### Installation
 ```
@@ -58,7 +59,7 @@ Unzip files by running `tar -xvf arhive.tar.gz` and place complete folders accor
 | [fwi_outputs.tar.gz](https://www.dropbox.com/s/jpnb18j62jqrs22/fwi_outputs.tar.gz?dl=1) | ~ 10 Mb | `./pretrained_files/fwi_outputs/*` | Inverted subsurface models etc.
 
 ## Acknowledgments
-Our implementation is heavily influenced and uses code blocks from [Inpainting GMCNN](https://github.com/shepnerd/inpainting_gmcnn).
+Our implementation is heavily influenced and contains code blocks from [Inpainting GMCNN](https://github.com/shepnerd/inpainting_gmcnn).
 
 ## Contact
 oleg.ovcharenko@kaust.edu.sa
