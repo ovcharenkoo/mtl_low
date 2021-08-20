@@ -120,146 +120,10 @@ class UNet_ext(nn.Module):
     
 
 """ ========================================================
-Experiment 2. Multi-L
-Based on https://github.com/shepnerd/inpainting_gmcnn
-"""
-class PureUpsampling(nn.Module):
-    def __init__(self, scale=2, mode='bilinear'):
-        super().__init__()
-        assert isinstance(scale, int)
-        self.scale = scale
-        self.mode = mode
-
-    def forward(self, x):
-        h, w = x.size(2) * self.scale, x.size(3) * self.scale
-        if self.mode == 'nearest':
-            xout = F.interpolate(input=x, size=(h, w), mode=self.mode)
-        else:
-            xout = F.interpolate(input=x, size=(h, w), mode=self.mode, align_corners=True)
-        return xout
-
-    
-class Mixer(nn.Module):
-    def __init__(self, n_channels, n_classes, kernel_size=3, bilinear=True, s=2):
-        super().__init__()
-        ch = 8
-        self.using_norm = True
-        self.norm = F.instance_norm
-        self.act = F.elu
-        
-        # network structure
-        self.EB1 = []
-        self.EB1_pad_rec = [3, 3, 3, 3, 3, 3, 6, 12, 24, 48, 3, 3, 0]
-        self.EB1.append(nn.Conv2d(n_channels, ch, kernel_size=7, stride=1))
-        self.EB1.append(nn.Conv2d(ch, ch * 2, kernel_size=7, stride=2))
-        self.EB1.append(nn.Conv2d(ch * 2, ch * 2, kernel_size=7, stride=1))
-        self.EB1.append(nn.Conv2d(ch * 2, ch * 4, kernel_size=7, stride=2))
-        self.EB1.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=7, stride=1))
-        self.EB1.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=7, stride=1))
-        self.EB1.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=7, stride=1, dilation=2))
-        self.EB1.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=7, stride=1, dilation=4))
-        self.EB1.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=7, stride=1, dilation=8))
-        self.EB1.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=7, stride=1, dilation=16))
-        self.EB1.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=7, stride=1))
-        self.EB1.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=7, stride=1))
-        self.EB1.append(PureUpsampling(scale=4))
-        self.EB1 = nn.ModuleList(self.EB1)
-        
-        self.EB2 = []
-        self.EB2_pad_rec = [2, 2, 2, 2, 2, 2, 4, 8, 16, 32, 2, 2, 0, 2, 2, 0]
-        self.EB2.append(nn.Conv2d(n_channels, ch, kernel_size=5, stride=1))
-        self.EB2.append(nn.Conv2d(ch, ch * 2, kernel_size=5, stride=2))
-        self.EB2.append(nn.Conv2d(ch * 2, ch * 2, kernel_size=5, stride=1))
-        self.EB2.append(nn.Conv2d(ch * 2, ch * 4, kernel_size=5, stride=2))
-        self.EB2.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=5, stride=1))
-        self.EB2.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=5, stride=1))
-        self.EB2.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=5, stride=1, dilation=2))
-        self.EB2.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=5, stride=1, dilation=4))
-        self.EB2.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=5, stride=1, dilation=8))
-        self.EB2.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=5, stride=1, dilation=16))
-        self.EB2.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=5, stride=1))
-        self.EB2.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=5, stride=1))
-        self.EB2.append(PureUpsampling(scale=2, mode='nearest'))
-        self.EB2.append(nn.Conv2d(ch * 4, ch * 2, kernel_size=5, stride=1))
-        self.EB2.append(nn.Conv2d(ch * 2, ch * 2, kernel_size=5, stride=1))
-        self.EB2.append(PureUpsampling(scale=2))
-        self.EB2 = nn.ModuleList(self.EB2)
-        
-        self.EB3 = []
-        self.EB3_pad_rec = [1, 1, 1, 1, 1, 1, 2, 4, 8, 16, 1, 1, 0, 1, 1, 0, 1, 1]
-        self.EB3.append(nn.Conv2d(n_channels, ch, kernel_size=3, stride=1))
-        self.EB3.append(nn.Conv2d(ch, ch * 2, kernel_size=3, stride=2))
-        self.EB3.append(nn.Conv2d(ch * 2, ch * 2, kernel_size=3, stride=1))
-        self.EB3.append(nn.Conv2d(ch * 2, ch * 4, kernel_size=3, stride=2))
-        self.EB3.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=3, stride=1))
-        self.EB3.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=3, stride=1))
-        self.EB3.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=3, stride=1, dilation=2))
-        self.EB3.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=3, stride=1, dilation=4))
-        self.EB3.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=3, stride=1, dilation=8))
-        self.EB3.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=3, stride=1, dilation=16))
-        self.EB3.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=3, stride=1))
-        self.EB3.append(nn.Conv2d(ch * 4, ch * 4, kernel_size=3, stride=1))
-        self.EB3.append(PureUpsampling(scale=2, mode='nearest'))
-        self.EB3.append(nn.Conv2d(ch * 4, ch * 2, kernel_size=3, stride=1))
-        self.EB3.append(nn.Conv2d(ch * 2, ch * 2, kernel_size=3, stride=1))
-        self.EB3.append(PureUpsampling(scale=2, mode='nearest'))
-        self.EB3.append(nn.Conv2d(ch * 2, ch, kernel_size=3, stride=1))
-        self.EB3.append(nn.Conv2d(ch, ch, kernel_size=3, stride=1))
-        self.EB3 = nn.ModuleList(self.EB3)
-        
-        self.decoding_layers = []
-        self.decoding_layers.append(nn.Conv2d(56, ch // 2, kernel_size=3, stride=1))
-        self.decoding_layers.append(nn.Conv2d(ch // 2, n_classes, kernel_size=3, stride=1))
- 
-        self.decoding_pad_rec = [1, 1]
-        self.decoding_layers = nn.ModuleList(self.decoding_layers)
-
-        # padding operations
-        padlen = 49
-        self.pads = [0] * padlen
-        for i in range(padlen):
-            self.pads[i] = nn.ReflectionPad2d(i)
-        self.pads = nn.ModuleList(self.pads)
-    
-    @autocast()
-    def forward(self, x):
-        x1, x2, x3 = x, x, x
-        
-        for i, layer in enumerate(self.EB1):
-            pad_idx = self.EB1_pad_rec[i]
-            x1 = layer(self.pads[pad_idx](x1))
-            if self.using_norm:
-                x1 = self.norm(x1)
-            if pad_idx != 0:
-                x1 = self.act(x1)
-                
-        for i, layer in enumerate(self.EB2):
-            pad_idx = self.EB2_pad_rec[i]
-            x2 = layer(self.pads[pad_idx](x2))
-            if self.using_norm:
-                x2 = self.norm(x2)
-            if pad_idx != 0:
-                x2 = self.act(x2)
-        
-        for i, layer in enumerate(self.EB3):
-            pad_idx = self.EB3_pad_rec[i]
-            x3 = layer(self.pads[pad_idx](x3))
-            if self.using_norm:
-                x3 = self.norm(x3)
-            if pad_idx != 0:
-                x3 = self.act(x3)
-        
-        x_d = torch.cat((x3.clone(), x2.clone(), x1.clone()), 1)
-        x_d = self.act(self.decoding_layers[0](self.pads[self.decoding_pad_rec[0]](x_d)))
-        x_d = self.decoding_layers[1](self.pads[self.decoding_pad_rec[1]](x_d))
-        return x_d, x_d
-    
-    
-""" ========================================================
-Experiments 3-5. Multi-{LM, LC, LCM}
+Experiments 2-5. Multi-{L, LM, LC, LCM}
 """
 # Model head (M)
-class HeadOld(nn.Module):
+class HeadModel(nn.Module):
     def __init__(self, layers=[(56, 16), (16, 1)], kernel_sizes=[3, 3], strides=[1, 1]):
         super().__init__()
         self.act = F.leaky_relu
@@ -285,7 +149,7 @@ class HeadOld(nn.Module):
     
     
 # Low-frequency data head (L)
-class Head(nn.Module):
+class HeadData(nn.Module):
     def __init__(self, layers, layers_out, kernel_sizes, strides, pads):
         super().__init__()
         self.act = F.leaky_relu
@@ -427,7 +291,7 @@ Classes for inference and manipulation of multiple models.
 """
 
 class Wrapper(backbone.BaseModel):
-    def __init__(self, encoder, head1, head2, load_dir, gan=False):
+    def __init__(self, encoder, head1, head2, load_dir):
         super().__init__()
         self.device = 0
         self.load_dir = load_dir
@@ -477,20 +341,6 @@ class Wrapper(backbone.BaseModel):
             for _ in range(ndiff):
                 x = np.expand_dims(x, 0)
         return torch.from_numpy(x).type(torch.FloatTensor).to(self.device)
-
-    
-class OldWrapper(backbone.BaseModel):
-    def __init__(self, ar, load_dir):
-        super().__init__()
-        self.device = 0
-        
-        # Init architectures
-        self.net_g = ar
-        self.model_names = ['_g']
-        self.load_networks(load_dir, 0)
-        
-        self.net_g = self.net_g.to(self.device)
-        self.net_g.eval()
         
         
 class Blend:
@@ -509,23 +359,16 @@ class Blend:
         
         
 class Ensemble(Wrapper):
-    def __init__(self, encoder, head1, head2, load_dir, num_ens=1,
-                 old=False, single_out=False, gan=False):
+    def __init__(self, encoder, head1, head2, load_dir, num_ens=1):
         self.nets = []
-        self.old=old
-        self.single_out = single_out
         if isinstance(num_ens, int):
             num_ens = [i for i in range(num_ens)]
             
         for i in num_ens:
             this_load_dir = load_dir[:-1]+f'_{i}' if len(num_ens) > 1 else load_dir
-            
-            if old:
-                self.nets.append(OldWrapper(copy.deepcopy(encoder), this_load_dir))
-            else:
-                self.nets.append(Wrapper(copy.deepcopy(encoder), 
-                                         copy.deepcopy(head1), 
-                                         copy.deepcopy(head2), this_load_dir, gan))
+            self.nets.append(Wrapper(copy.deepcopy(encoder), 
+                                     copy.deepcopy(head1), 
+                                     copy.deepcopy(head2), this_load_dir, gan))
         self.device = 0
     
     def encode(self, h):
@@ -544,16 +387,9 @@ class Ensemble(Wrapper):
  
         preds = []
         for net in self.nets:
-            if self.single_out:
-                lup = net.net_g(h)
-                mp = torch.zeros_like(h)
-            else:
-                if self.old:
-                    lup, mp = net.net_g(h)
-                else:
-                    x = net.net_encoder(h)
-                    lup = net.net_data(x)
-                    mp = net.net_model(x)
+            x = net.net_encoder(h)
+            lup = net.net_data(x)
+            mp = net.net_model(x)
 
             pred = (lup, mp)
             pl = pred[pred_idx]
