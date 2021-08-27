@@ -119,7 +119,8 @@ def plot_shot(shot, pclip=1.0, title='', colorbar=True, dt=None, dx=None,
     vlim = pclip * np.max(np.abs(shot)); 
 
     if dt or dx:
-        nx, nt = shot.shape
+        nx, nt = shot.shape                                                 nz0 * dx/1000] if nz0 else nz * dx / 1000, 
+
         kwargs['extent'] = [0, nx*dx/1000 if dx else nx, 0, nt*dt if dt else nt]
         if dx: 
             ax.set_xlabel('km');
@@ -784,7 +785,7 @@ def plot_log_model(mm, dx, nx0=None, nz0=None, _src=None, title='', log=None, lo
     im = ax.imshow(v[:,:nx0], cmap=cmap, extent=[0, 
                                                  nx0 * dx / 1000 if nx0 else nx * dx / 1000, 
                                                  0, 
-                                                 nz0 * dx/1000] if nz0 else nz * dx / 1000, 
+                                                 nz0 * dx/1000 if nz0 else nz * dx / 1000], 
                    origin='upper', **kwargs); 
     divider = make_axes_locatable(ax); 
     cax = divider.append_axes("right", size="5%", pad=0.05); cbar = plt.colorbar(im, cax=cax); cbar.set_label(cax_label);
