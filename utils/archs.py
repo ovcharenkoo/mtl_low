@@ -368,7 +368,7 @@ class Ensemble(Wrapper):
             this_load_dir = load_dir[:-1]+f'_{i}' if len(num_ens) > 1 else load_dir
             self.nets.append(Wrapper(copy.deepcopy(encoder), 
                                      copy.deepcopy(head1), 
-                                     copy.deepcopy(head2), this_load_dir, gan))
+                                     copy.deepcopy(head2), this_load_dir))
         self.device = 0
     
     def encode(self, h):
