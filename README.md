@@ -2,7 +2,7 @@
 # Multi-task learning for low-frequency extrapolation and elastic model building from seismic data
 
 
-by [Ovcharenko Oleg](https://ovcharenkoo.com/), [Vladimir Kazei](https://vkazei.com/), [Tariq Alkhalifah](https://sites.google.com/a/kaust.edu.sa/tariq/home) and [Daniel Peter](https://github.com/danielpeter). This repository contains the general workflow and synthetci data experiments reported in my [Ph.D. dissertation](https://repository.kaust.edu.sa/handle/10754/673716). A modified version of this work is also undergoing review to IEEE Transactions on Geoscience and Remote Sensing.
+by [Ovcharenko Oleg](https://ovcharenkoo.com/), [Vladimir Kazei](https://vkazei.com/), [Tariq Alkhalifah](https://sites.google.com/a/kaust.edu.sa/tariq/home) and [Daniel Peter](https://github.com/danielpeter). This repository contains the general workflow and synthetic data experiments reported in my [Ph.D. dissertation](https://repository.kaust.edu.sa/handle/10754/673716). A modified version of this work is also undergoing review to IEEE Transactions on Geoscience and Remote Sensing.
 
 
 Note that examples below include **experiments on synthetic data only** since posting field data requires special permissions.
@@ -62,4 +62,5 @@ Unzip files by running `tar -xvf arhive.tar.gz` and place complete folders accor
 Our implementation is heavily influenced and contains code blocks from [Inpainting GMCNN](https://github.com/shepnerd/inpainting_gmcnn).
 
 ## Contact
+Please raise an issue or me know if something works wrong
 oleg.ovcharenko@kaust.edu.sa
