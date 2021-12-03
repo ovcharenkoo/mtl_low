@@ -119,7 +119,7 @@ def plot_shot(shot, pclip=1.0, title='', colorbar=True, dt=None, dx=None,
     vlim = pclip * np.max(np.abs(shot)); 
 
     if dt or dx:
-        nx, nt = shot.shape                                                 nz0 * dx/1000] if nz0 else nz * dx / 1000, 
+        nx, nt = shot.shape                                                 #nz0 * dx/1000] if nz0 else nz * dx / 1000, 
 
         kwargs['extent'] = [0, nx*dx/1000 if dx else nx, 0, nt*dt if dt else nt]
         if dx: 
