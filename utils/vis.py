@@ -46,7 +46,7 @@ def savefig(img_name, disable=False):
             plt.savefig(img_name, **par_pic)
     else:
         print('Saving figures disabled!')
-    
+
 
 def plot_model(v, title='', axis='on', colorbar=True, cax_label='km/s', figsize=None, cmap='RdBu_r', ax=None, dpi=None, **kwargs): 
     if ax is None:
@@ -82,7 +82,7 @@ def plot_acquisition(v, dx, src=None, rec=None, title='', cax_label='', log=None
     
     divider = make_axes_locatable(ax); cax = divider.append_axes("right", size="5%", pad=0.05); 
     plt.colorbar(im, cax=cax, label=cax_label);
-    
+
 
 def plot_signal(signals, dt=None, title='', xlabel='Time, sec', ylabel='', **kwargs):
     fig, ax = plt.subplots(1, 1)
@@ -104,7 +104,7 @@ def plot_signal(signals, dt=None, title='', xlabel='Time, sec', ylabel='', **kwa
         plt.xlabel(xlabel)
     plt.ylabel(ylabel)
 
-    
+
 def plot_shot(shot, pclip=1.0, title='', colorbar=True, dt=None, dx=None, 
               figsize=None, axis=True, ax=None, cax_label='', dpi=None, **kwargs):
     """ Plot a seismic shot gather given as 2d array [offset, time] """
@@ -119,8 +119,7 @@ def plot_shot(shot, pclip=1.0, title='', colorbar=True, dt=None, dx=None,
     vlim = pclip * np.max(np.abs(shot)); 
 
     if dt or dx:
-        nx, nt = shot.shape                                                 nz0 * dx/1000] if nz0 else nz * dx / 1000, 
-
+        nx, nt = shot.shape                                                
         kwargs['extent'] = [0, nx*dx/1000 if dx else nx, 0, nt*dt if dt else nt]
         if dx: 
             ax.set_xlabel('km');
@@ -144,7 +143,7 @@ def plot_shot(shot, pclip=1.0, title='', colorbar=True, dt=None, dx=None,
         
     ax.set_title(title); 
     ax.axis('auto' if axis else 'off'); ax.invert_yaxis();
-    
+
 
 def plot_spectra_dictlist(dictlist, dt, fmax=10, phase=False, title='', norm=False, ampmax=None, ax=None):
     """ Plot multiple spectra of seismic data on the same plot. 
@@ -165,20 +164,20 @@ def plot_spectra_dictlist(dictlist, dt, fmax=10, phase=False, title='', norm=Fal
     ax.set_xlabel('Frequency (Hz)'); ax.set_ylabel('Gain' if not phase else 'Angle, rad'); 
     ax.set_title(title)
     ax.grid(True); ax.legend(loc='best');
-    
-    
+
+
 def plot_nxm(ds, value_shift=0, transpose=False, **kwargs):
     """ Given a nested list [[im1, im2, ...], [im3, im4, ...]] plot it as a table """
     img = np.concatenate([np.concatenate(dd, 0) for dd in ds], 1)
     img += value_shift
     plot_shot(img if not transpose else img.T, axis=False, **kwargs)
-    
+
 
 def compare_shots(a, b, pclip=0.95, title=''):
     img = np.concatenate((a, b, a-b), 0); 
     plot_shot(img, pclip, title=title)
 
-    
+
 def plot_spectrum(shot, dt, title='', fmax=None, ax=None):
     if ax is None:
         fig, ax = plt.subplots(1, 1)
@@ -238,7 +237,7 @@ def imshow_shot(ds, title='', pclip=0.1, **kwargs):
     plt.imshow(img, **kwargs);
     plt.title(title)
     plt.pause(1e-4)
-    
+
 
 def imshow_diff(d1, d2, key, pclip, title, lims):
     diff = dict_sub(d1, d2)
@@ -469,8 +468,8 @@ def wiggle(data, tt=None, xx=None, color='k', alpha=1., sf=0.15, verbose=False, 
     ax.set_xlim(xx[0] - ts, xx[-1] + ts)
     ax.set_ylim(tt[0], tt[-1])
     ax.invert_yaxis()
-    
-    
+
+
 def color_to_color_linestyle(compound_color):
     this_color = ''.join(filter(str.isalpha, compound_color))
     this_linestyle = ''.join([s for s in compound_color if not s.isalpha()])
@@ -509,8 +508,8 @@ def plot_wiggles(ds, n=9, colors=['k--', 'b', 'r'], alphas=1., legend=None, figs
 
     if return_data:
         return to_return
-        
-        
+
+
 def plot_metrics(m, title=''):
     plt.figure()
     for phase, loss_dict in m.items():
@@ -589,7 +588,7 @@ def imgrid(inp, lbl, preds, pclip=1.0, titles='',
         move = 2
     else:
         move = 1
-        
+
 #     fig = plt.figure(figsize=(2 * (ndnns + move), 2 * nrows) if not figsize else figsize)
     fig = plt.figure(figsize=(2 * (ndnns + move), (ndnns + move)/1.5) if not figsize else figsize)
     gs1 = gridspec.GridSpec(nrows, ndnns + move)
@@ -747,7 +746,7 @@ def plot_spectrum2(shot, pclip=1.0, title='', colorbar=False, dt=None, dx=None, 
     if colorbar: plt.colorbar()
     plt.title(title); plt.axis('auto' if axis else 'off');
 
-    
+
 def make_stripe_mask(_shape, width, step):
     h, w = _shape
     nlines = int(w / (width + step)) + 1
@@ -773,8 +772,8 @@ def plot_compare_stripes(shot_a, shot_b, width=20, step=20, **kwargs):
     shot_plot = copy.copy(shot_a)
     shot_plot[stripes] = shot_b[stripes]
     plot_shot(shot_plot, **kwargs)
-    
-    
+
+
 def plot_log_model(mm, dx, nx0=None, nz0=None, _src=None, title='', log=None, log_location=None, cmap='RdBu_r', axis=True, cax_label='km/s', **kwargs):
     v = mm.copy() / 1000
     plt.figure(); ax = plt.gca();
@@ -799,8 +798,8 @@ def plot_log_model(mm, dx, nx0=None, nz0=None, _src=None, title='', log=None, lo
         vh = log_location * np.ones_like(log) / 1000 
         ax.plot(vh, np.arange(len(log))*dx/1000, 'k--')
         ax.plot(vh + (log[::-1] - min(log)) / 1000, np.arange(len(log))*dx/1000, 'k')
-      
-    
+
+
 def get_spectrum_fx(shot, dt, fmax=None):
     shot = np.fft.rfft(shot, n=(shot.shape[-1]*2-1), axis=-1)
     nx, nt = shot.shape       
@@ -859,8 +858,8 @@ def plot_fx(shot, dt, component='real', pclip=1.0, title='', colorbar=False, dx=
     plt.imshow(np.flip(shot.T, 0), cmap='RdBu_r', **kwargs); 
     if colorbar: plt.colorbar()
     plt.title(title); plt.axis('auto' if axis else 'off');
-    
-    
+
+
 def plot_data3d_slices(data3d, ncols = 15, verbose=0, **kwargs):
     nimgs = data3d.shape[0]
     nrows = int(np.ceil(nimgs / ncols))
@@ -873,8 +872,8 @@ def plot_data3d_slices(data3d, ncols = 15, verbose=0, **kwargs):
     extended_pred = np.concatenate([data3d, np.zeros((nempty, _no, _nt))])
     table = [[extended_pred[ncols*irow + icol, ...] for icol in range(ncols)] for irow in range(nrows)]
     plot_nxm(table, figsize=(ncols, nrows), colorbar=False, **kwargs)
-    
-    
+
+
 # from https://github.com/audeering/audtorch/blob/master/audtorch/metrics/functional.py
 def pearsonr(x, y, batch_first=True):
     assert x.shape == y.shape

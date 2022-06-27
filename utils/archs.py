@@ -117,7 +117,7 @@ class UNet_ext(nn.Module):
         x = self.up4(x, x1)
         logits = self.outc(x)
         return logits
-    
+
 
 """ ========================================================
 Experiments 2-5. Multi-{L, LM, LC, LCM}
@@ -146,8 +146,8 @@ class HeadModel(nn.Module):
         x = self.act(self.decoding_layers[0](self.pads[self.decoding_pad_rec[0]](x)))
         x = self.decoding_layers[1](self.pads[self.decoding_pad_rec[1]](x))
         return torch.clip(x, -1, 1)
-    
-    
+
+
 # Low-frequency data head (L)
 class HeadData(nn.Module):
     def __init__(self, layers, layers_out, kernel_sizes, strides, pads):
@@ -283,9 +283,9 @@ class Encoder(nn.Module):
         x = torch.cat((x3.clone(), x2.clone(), x1.clone()), 1)
         x = self.act(self.decoding_layers[0](self.pads[self.decoding_pad_rec[0]](x)))
         return x
-    
 
-    
+
+
 """ ========================================================
 Classes for inference and manipulation of multiple models.
 """
@@ -341,8 +341,8 @@ class Wrapper(backbone.BaseModel):
             for _ in range(ndiff):
                 x = np.expand_dims(x, 0)
         return torch.from_numpy(x).type(torch.FloatTensor).to(self.device)
-        
-        
+
+
 class Blend:
     def __init__(self, ens):
         self.ens = ens
@@ -356,8 +356,8 @@ class Blend:
             return preds
         else:
             return sum(preds) / len(preds)
-        
-        
+
+
 class Ensemble(Wrapper):
     def __init__(self, encoder, head1, head2, load_dir, num_ens=1):
         self.nets = []
