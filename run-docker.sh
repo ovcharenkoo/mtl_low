@@ -5,7 +5,7 @@
 CONTAINER_NAME=kaust/mtl_low
 CONTAINER_SHORTCUT_NAME=mtl_low
 SUBDIR_NAME=project
-PORT_HOST=8883
+PORT_HOST=8888
 TAG=latest
 
 # Specs of the current user. These will be arguments to Dockerfile

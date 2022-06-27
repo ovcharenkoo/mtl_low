@@ -16,7 +16,7 @@ RUN mkdir -p /workspace && cd /workspace && \
 
 USER $MYUSER
 
-RUN pip install --no-cache-dir natsort ipynb segyio scikit-image latex seaborn
+RUN pip install natsort ipynb segyio scikit-image latex seaborn ipywidgets
 
 RUN echo "#!/bin/bash" >> /workspace/install_denise.sh && \
     echo "cd /workspace/project/" >> /workspace/install_denise.sh && \
@@ -31,13 +31,23 @@ RUN echo "#!/bin/bash" >> /workspace/install_denise.sh && \
 RUN echo "#!/bin/bash" >> /workspace/install_madagascar.sh && \
     echo "cd /workspace/project/" >> /workspace/install_madagascar.sh && \
     echo "git clone https://github.com/ahay/src RSFSRC" >> /workspace/install_madagascar.sh && \
-    echo "cd /workspace/project/RSFRC" >> /workspace/install_madagascar.sh && \
+    echo "cd /workspace/project/RSFSRC" >> /workspace/install_madagascar.sh && \
     echo "./configure --prefix=/workspace/project/madagascar" >> /workspace/install_madagascar.sh && \
     echo "make -j 4 install" >> /workspace/install_madagascar.sh && \
     echo "cd /workspace/project/" >> /workspace/install_madagascar.sh && \
     echo "source /workspace/project/madagascar/share/madagascar/etc/env.sh" >> /workspace/install_madagascar.sh && \
     chmod 755 /workspace/install_madagascar.sh
 
+RUN echo "#!/bin/bash" >> /workspace/download_data.sh && \
+    echo "cd /workspace/project/" >> /workspace/download_data.sh && \
+    echo "wget https://www.dropbox.com/s/58zckalcm6wlp06/data.tar.gz?dl=1 -O /workspace/project/pretrained_files/data.tar.gz" >> /workspace/download_data.sh && \
+    echo "tar -xvf /workspace/project/pretrained_files/data.tar.gz -C /workspace/project/pretrained_files/ && rm /workspace/project/pretrained_files/data.tar.gz" >> /workspace/download_data.sh && \
+    echo "wget https://www.dropbox.com/s/a8wvncp86iiob0d/trained_nets.tar.gz?dl=1 -O /workspace/project/pretrained_files/trained_nets.tar.gz" >> /workspace/download_data.sh && \
+    echo "tar -xvf /workspace/project/pretrained_files/trained_nets.tar.gz -C /workspace/project/pretrained_files/ && rm /workspace/project/pretrained_files/trained_nets.tar.gz" >> /workspace/download_data.sh && \
+    echo "wget https://www.dropbox.com/s/jpnb18j62jqrs22/fwi_outputs.tar.gz?dl=1 -O /workspace/project/pretrained_files/fwi_outputs.tar.gz" >> /workspace/download_data.sh && \
+    echo "tar -xvf /workspace/project/pretrained_files/fwi_outputs.tar.gz -C /workspace/project/pretrained_files/ && rm /workspace/project/pretrained_files/fwi_outputs.tar.gz" >> /workspace/download_data.sh && \
+    chmod 755 /workspace/download_data.sh
+    
 # RUN echo "source /workspace/project/madagascar/share/madagascar/etc/env.sh" >> /${MYUSER}/.bashrc
 
 WORKDIR /workspace/project
